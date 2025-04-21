@@ -681,7 +681,7 @@ export const DEFAULT_MODELS = [
       id: "azure",
       providerName: "Azure",
       providerType: "azure",
-      sorted: 2,
+      sorted: 1,
     },
   })),
   ...openaiModels.map((name) => ({
@@ -692,7 +692,7 @@ export const DEFAULT_MODELS = [
       id: "openai",
       providerName: "OpenAI",
       providerType: "openai",
-      sorted: 1, // 这里是固定的，确保顺序与之前内置的版本一致
+      sorted: 2, // 这里是固定的，确保顺序与之前内置的版本一致
     },
   })),
   ...googleModels.map((name) => ({
