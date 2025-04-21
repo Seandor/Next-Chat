@@ -1,0 +1,53 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - Next-Chat
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+      - ".husky"
+      - ".github/**"
+      - "**/*.csv"
+      - .env*
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: create env file
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.DEV_NEXT_PUBLIC_API_BASE_URL }}
+        run: |
+          touch .env
+          echo NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL >> .env
+          echo BUILD_MODE=standalone >> .env
+          echo NODE_ENV=production >> .env
+
+      - name: npm install, build, and test
+        run: |
+          npm install
+          npm run build
+          mv ./.next/static ./.next/standalone/.next
+          mv ./public ./.next/standalone
+
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'next-chat'
+          slot-name: 'Production'
+          package: ./.next/standalone
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
