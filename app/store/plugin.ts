@@ -74,6 +74,15 @@ export const FunctionToolService = {
         adapter: (window.__TAURI__ ? adapter : ["xhr"]) as any,
         baseURL,
         headers,
+        // Remove Content-Type for GET/HEAD requests to avoid Edge Runtime issues
+        transformRequest: [
+          (data, headers) => {
+            if (headers && !data) {
+              delete headers["Content-Type"];
+            }
+            return data;
+          },
+        ],
       },
     });
     try {
