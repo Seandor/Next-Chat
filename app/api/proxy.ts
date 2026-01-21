@@ -20,13 +20,18 @@ export async function handle(
   const fetchUrl = `${req.headers.get(
     "x-base-url",
   )}/${subpath}?${req.nextUrl.searchParams.toString()}`;
-  const skipHeaders = ["connection", "host", "origin", "referer", "cookie"];
+  const isBodylessMethod = req.method === "GET" || req.method === "HEAD";
+  // For GET/HEAD requests, also skip content-type since there's no body
+  const skipHeaders = isBodylessMethod
+    ? ["connection", "host", "origin", "referer", "cookie", "content-type"]
+    : ["connection", "host", "origin", "referer", "cookie"];
   const headers = new Headers(
     Array.from(req.headers.entries()).filter((item) => {
+      const headerName = item[0].toLowerCase();
       if (
-        item[0].indexOf("x-") > -1 ||
-        item[0].indexOf("sec-") > -1 ||
-        skipHeaders.includes(item[0])
+        headerName.startsWith("x-") ||
+        headerName.startsWith("sec-") ||
+        skipHeaders.includes(headerName)
       ) {
         return false;
       }
@@ -34,22 +39,23 @@ export async function handle(
     }),
   );
   // if dalle3 use openai api key
-    const baseUrl = req.headers.get("x-base-url");
-    if (baseUrl?.includes("api.openai.com")) {
-      if (!serverConfig.apiKey) {
-        return NextResponse.json(
-          { error: "OpenAI API key not configured" },
-          { status: 500 },
-        );
-      }
-      headers.set("Authorization", `Bearer ${serverConfig.apiKey}`);
+  const baseUrl = req.headers.get("x-base-url");
+  if (baseUrl?.includes("api.openai.com")) {
+    if (!serverConfig.apiKey) {
+      return NextResponse.json(
+        { error: "OpenAI API key not configured" },
+        { status: 500 },
+      );
     }
+    headers.set("Authorization", `Bearer ${serverConfig.apiKey}`);
+  }
 
   const controller = new AbortController();
   const fetchOptions: RequestInit = {
     headers,
     method: req.method,
-    body: req.body,
+    // GET/HEAD requests must not have a body - this causes errors in Edge Runtime
+    body: isBodylessMethod ? undefined : req.body,
     // to fix #2485: https://stackoverflow.com/questions/55920957/cloudflare-worker-typeerror-one-time-use-body
     redirect: "manual",
     // @ts-ignore

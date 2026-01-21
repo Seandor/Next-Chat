@@ -107,3 +107,18 @@ Tests use Jest with jsdom environment. Test files match `**/*.test.{js,ts,jsx,ts
 # Run specific test file
 yarn test -- test/model-provider.test.ts
 ```
+
+## Deployment
+
+This fork (`Seandor/Next-Chat`) deploys to Azure Web App using GitHub Actions.
+
+- **Branch**: `siyuanling/next-chat` triggers deployment to Azure
+- **Workflow**: `.github/workflows/main_next-chat.yml.yml`
+- **Target**: Azure Web App named `next-chat`
+- **URL**: https://nextchat.siyuan0.tech/
+
+**Important Notes:**
+- The app runs on Azure with Node.js standalone mode (not Edge Runtime locally)
+- However, API routes use `runtime = "edge"` which behaves differently in production
+- Local development (`yarn dev`) uses Node.js runtime, which is more lenient than Edge Runtime
+- Always test Edge Runtime-specific behavior (like GET request body handling) in the deployed environment
