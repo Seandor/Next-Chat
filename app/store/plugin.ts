@@ -20,6 +20,7 @@ export type Plugin = {
   authLocation?: string;
   authHeader?: string;
   authToken?: string;
+  autoEnabled?: boolean; // If true, this plugin is always available to AI without manual selection
 };
 
 export type FunctionToolItem = {
@@ -217,10 +218,18 @@ export const usePluginStore = createPersistStore(
 
     getAsTools(ids: string[]) {
       const plugins = get().plugins;
-      const selected = (ids || [])
+      // Get manually selected plugins
+      const manuallySelected = (ids || [])
         .map((id) => plugins[id])
-        .filter((i) => i)
-        .map((p) => FunctionToolService.add(p));
+        .filter((i) => i);
+      // Get auto-enabled plugins that aren't already selected
+      const autoEnabled = Object.values(plugins).filter(
+        (p) => p.autoEnabled && !ids?.includes(p.id),
+      );
+      // Combine and add to service
+      const selected = [...manuallySelected, ...autoEnabled].map((p) =>
+        FunctionToolService.add(p),
+      );
       return [
         // @ts-ignore
         selected.reduce((s, i) => s.concat(i.tools), []),

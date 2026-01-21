@@ -17,6 +17,7 @@
   {
     "id": "searxng",
     "name": "SearXNGSearch",
-    "schema": "/searxng-openapi.json"
+    "schema": "/searxng-openapi.json",
+    "autoEnabled": true
   }
 ]
